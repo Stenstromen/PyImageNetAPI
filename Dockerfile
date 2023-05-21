@@ -4,15 +4,21 @@ FROM python:3.9-slim-buster
 # Set the working directory in the container to /app
 WORKDIR /app
 
-# Add contents of the current directory (on your machine) to the container at /app
+# Add the current directory contents into the container at /app
 ADD . /app
 
+# Set environment variables
+ENV AUTHORIZATION_KEY "123"
+ENV CORS_ORIGINS "*"
+
 # Install any needed packages specified in requirements.txt
-RUN mkdir -p ~/.keras/models && \
-pip install --no-cache-dir -r requirements.txt 
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Make port 5000 available to the world outside this container
-EXPOSE 5000
+# Install gunicorn
+RUN pip install --no-cache-dir gunicorn
 
-# Run app.py when the container launches
-CMD ["python", "app.py"]
+# Make port 80 available to the world outside this container
+EXPOSE 80
+
+# Run the command to start gunicorn
+CMD ["gunicorn", "-b", "0.0.0.0:80", "app:app"]
