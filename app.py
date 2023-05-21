@@ -1,13 +1,13 @@
 from flask import Flask, request
+from flask_cors import CORS
 import numpy as np
 import tensorflow as tf
-import requests
 from PIL import Image
 import io
 import os
 
-# Load MobileNetV2
-inception_net = tf.keras.applications.MobileNetV2()
+# Load MobileNetV3Large
+inception_net = tf.keras.applications.MobileNetV3Large()
 
 # Load human-readable labels for ImageNet from disk or internet
 try:
@@ -19,16 +19,13 @@ except FileNotFoundError:
 
 def classify_image(inp):
     inp = inp.reshape((-1, 224, 224, 3))
-    inp = tf.keras.applications.mobilenet_v2.preprocess_input(inp)
+    inp = tf.keras.applications.mobilenet_v3.preprocess_input(inp)
     prediction = inception_net.predict(inp).flatten()
 
     # Apply softmax to convert logits to probabilities
     probabilities = tf.nn.softmax(prediction).numpy()
 
-    # Convert probabilities to percentages and round them off to 2 decimal places
-    percentages = [round(p * 100, 5) for p in probabilities]
-
-    confidences = {labels[i]: percentages[i] for i in range(1000)}
+    confidences = {labels[i]: float(probabilities[i]) for i in range(1000)}
 
     # Sort by confidence, highest confidence first
     confidences = dict(sorted(confidences.items(), key=lambda item: item[1], reverse=True))
@@ -36,6 +33,15 @@ def classify_image(inp):
     return confidences
 
 app = Flask(__name__)
+
+# Add CORS support
+cors = CORS(app, resources={r"/predict": {"origins": os.getenv('CORS_ORIGINS')}})
+
+@app.before_request
+def before_request():
+    # Check authorization key
+    if request.headers.get('authorization') != os.getenv('AUTHORIZATION_KEY'):
+        return 'Unauthorized', 401
 
 @app.route('/predict', methods=['POST'])
 def predict():
