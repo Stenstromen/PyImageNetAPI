@@ -22,5 +22,5 @@ imagenetapi:latest
 
 ## Test
 ```
-curl -s -X POST -F "file=@cat.jpg" "http://localhost:8080/predict?limit=3" | jq
+curl -s -X POST -H "Authorization: 123" -F "file=@cat.jpg" "http://localhost:8080/predict?limit=3" | jq
 ```
