@@ -39,9 +39,11 @@ cors = CORS(app, resources={r"/predict": {"origins": os.getenv('CORS_ORIGINS')}}
 
 @app.before_request
 def before_request():
-    # Check authorization key
-    if request.headers.get('authorization') != os.getenv('AUTHORIZATION_KEY'):
-        return 'Unauthorized', 401
+    # Ignore authentication for OPTIONS requests
+    if request.method != 'OPTIONS':
+        # Check authorization key
+        if request.headers.get('authorization') != os.getenv('AUTHORIZATION_KEY'):
+            return 'Unauthorized', 401
 
 @app.route('/predict', methods=['POST'])
 def predict():
