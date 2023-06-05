@@ -35,7 +35,7 @@ def classify_image(inp):
 app = Flask(__name__)
 
 # Add CORS support
-cors = CORS(app, resources={r"/predict": {"origins": os.getenv('CORS_ORIGINS')}})
+cors = CORS(app, resources={r"/predict": {"origins": os.getenv('CORS_ORIGINS')}}, supports_credentials=True)
 
 @app.before_request
 def before_request():
